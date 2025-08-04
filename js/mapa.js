@@ -1,5 +1,3 @@
-// js/mapa.js
-
 (function() {
   // Helper: leer parámetro URL
   function getParam(name) {
@@ -19,7 +17,7 @@
     throw new Error('Parámetro amarre faltante');
   }
 
-  // Cargar datos de amarres (fíjate en la ruta ../data...)
+  // Cargar datos de amarres
   fetch('../data/amarres.json')
     .then(res => res.json())
     .then(data => {
@@ -29,9 +27,9 @@
       const oficinaCoords = [40.41478, 0.43311];
       const amarreCoords  = [entry.lat, entry.lng];
       const ruta          = entry.route;   // Array de coordenadas
-      const steps         = entry.steps;   // Array de pasos con lat, lng, distance, instruction, sub
+      const steps         = entry.steps;   // Pasos con lat, lng, distance, instruction, sub
 
-      // Punto de entrada al puerto (el primer punto de la ruta)
+      // Punto de entrada al puerto (primer punto de ruta)
       const entryCoords = ruta[0];
 
       // 1) Crear mapa y centrar
@@ -65,7 +63,7 @@
         iconAnchor: [16,16]
       });
 
-      // 5) Marcadores fijos
+      // 5) Marcadores fijos: oficina, entrada y amarre
       L.marker(oficinaCoords, { icon: redIcon })
         .addTo(map).bindPopup('Oficina del puerto');
       L.marker(entryCoords)
@@ -80,14 +78,22 @@
         opacity: 0.8
       }).addTo(map);
 
-      // 7) Marcador de usuario (barco)
+      // 7) Preparar marcador de usuario con icono de embarcación
       const userMarker = L.marker(oficinaCoords, { icon: boatIcon })
         .addTo(map);
+
+      // 8) Crear línea gris al punto de entrada (vacía al principio)
+      let entryLine = L.polyline([], {
+        color: 'gray',
+        weight: 2,
+        dashArray: '4,6',
+        opacity: 0.6
+      }).addTo(map);
 
       // Helper: encuentra índice más cercano en un array de coords
       function nearestIndex(pos, coordsArray) {
         let best = 0, minD = Infinity;
-        coordsArray.forEach((c,i) => {
+        coordsArray.forEach((c, i) => {
           const d = map.distance(pos, c);
           if (d < minD) {
             minD = d;
@@ -97,7 +103,7 @@
         return best;
       }
 
-      // 8) Vigilar geolocalización en tiempo real
+      // 9) Vigilar geolocalización en tiempo real
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
           const userPos = [position.coords.latitude, position.coords.longitude];
@@ -105,10 +111,12 @@
           // Mover marcador del usuario
           userMarker.setLatLng(userPos).bindPopup('Estás aquí').openPopup();
 
-          // Recortar la ruta restante
+          // Actualizar y recortar la ruta azul
           const idxRoute = nearestIndex(userPos, ruta);
-          const remaining = ruta.slice(idxRoute);
-          routeLine.setLatLngs(remaining);
+          routeLine.setLatLngs(ruta.slice(idxRoute));
+
+          // **ACTUALIZAR línea gris hacia la entrada**
+          entryLine.setLatLngs([userPos, entryCoords]);
 
           // Panel superior: paso actual
           const idxStep = nearestIndex(
@@ -129,7 +137,7 @@
             <div class="footer-text">Marina Benicarló</div>
           `);
 
-          // Ajustar vista para incluir usuario y ruta remanente
+          // Ajustar vista para incluir usuario y amarre
           const bounds = L.latLngBounds([userPos, amarreCoords]);
           map.fitBounds(bounds, { padding: [50,50] });
 
@@ -141,11 +149,9 @@
       } else {
         alert('Tu navegador no soporta geolocalización.');
       }
-
     })
     .catch(err => {
       console.error(err);
       alert('Error cargando datos de amarres.');
     });
-
 })();
