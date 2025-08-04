@@ -8,6 +8,36 @@
       [40.41444253201121, 0.4341373160295916],
       [40.41447613582497, 0.4336606503673295],
       [40.41421402563469, 0.4336076875160586]
+    ],
+    "steps": [
+      {
+        "lat": 40.41348817670263,
+        "lng": 0.43377540321120023,
+        "distance": "60 m",
+        "instruction": "Sal del pantalán y continúa por estribor",
+        "sub": "A continuación, vira todo a babor"
+      },
+      {
+        "lat": 40.41416698010775,
+        "lng": 0.4341020074612345,
+        "distance": "200 m",
+        "instruction": "Al llegar al canal, mantente por el centro",
+        "sub": ""
+      },
+      {
+        "lat": 40.41444253201121,
+        "lng": 0.4341373160295916,
+        "distance": "350 m",
+        "instruction": "Gira levemente a babor",
+        "sub": ""
+      },
+      {
+        "lat": 40.41421402563469,
+        "lng": 0.4336076875160586,
+        "distance": "50 m",
+        "instruction": "Estás a punto de llegar al amarre",
+        "sub": ""
+      }
     ]
   }
 }
