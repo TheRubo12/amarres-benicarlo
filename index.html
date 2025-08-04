@@ -1,0 +1,33 @@
+### index.html
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Marina Benicarló - Amarres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Marina Benicarló - Selecciona tu amarre</h1>
+  <ul id="lista-amarres"></ul>
+
+  <script>
+    // Cargar lista de amarres desde data/amarres.json
+    fetch('data/amarres.json')
+      .then(response => response.json())
+      .then(data => {
+        const ul = document.getElementById('lista-amarres');
+        Object.keys(data).forEach(id => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `amarre.html?amarre=${id}`;
+          a.textContent = `Amarre ${id}`;
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+      });
+  </script>
+</body>
+</html>
+```
