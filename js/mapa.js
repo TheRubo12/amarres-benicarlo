@@ -28,8 +28,8 @@
     throw new Error('Falta parametro amarre');
   }
 
-  // Cargar datos de amarres
-  fetch('../data/amarres.json')
+  // Cargar datos de amarres (ruta correcta)
+  fetch('data/amarres.json')
     .then(r => r.json())
     .then(data => {
       const entry = data[amarreId];
