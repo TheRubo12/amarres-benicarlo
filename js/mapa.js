@@ -1,4 +1,4 @@
-(function() {
+function() {
   // Leer parámetro de URL
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
@@ -21,70 +21,75 @@
   fetch('data/amarres.json')
     .then(res => res.json())
     .then(data => {
-      const entry = data[amarreId];
-      if (!entry) throw new Error('ID de amarre no válido');
+      const entry       = data[amarreId];
+      const oficinaCoords= [40.41478, 0.43311];
+      const amarreCoords = [entry.lat, entry.lng];
+      const ruta         = entry.route;  // Array de coordenadas del recorrido completo
+      const steps        = entry.steps;  // Array con puntos de maniobra e indicaciones
 
-      const oficinaCoords = [40.41478, 0.43311];
-      const amarreCoords  = [entry.lat, entry.lng];
-      const ruta          = entry.route;
-      const steps         = entry.steps;
-
-      // El punto de entrada es el primer punto de la ruta
+      // Punto de entrada: el primer punto de la ruta
       const entryCoords = ruta[0];
 
-      // Iniciar mapa
+      // Inicializar mapa
       const map = L.map('map').setView(oficinaCoords, 17);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
 
-      // Icono rojo para la oficina
+      // Icono de embarcación para el usuario
+      const boatIcon = new L.Icon({
+        iconUrl: 'https://img.icons8.com/fluency/48/000000/boat.png',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      // Marcadores fijos
       const redIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
         iconSize: [25,41], iconAnchor: [12,41], popupAnchor: [1,-34], shadowSize: [41,41]
       });
+      L.marker(oficinaCoords, { icon: redIcon }).addTo(map).bindPopup('Oficina');
+      L.marker(entryCoords).addTo(map).bindPopup('Entrada del puerto');
+      L.marker(amarreCoords).addTo(map).bindPopup(`Amarre ${amarreId}`);
 
-      // Marcadores fijos
-      L.marker(oficinaCoords, { icon: redIcon }).addTo(map)
-        .bindPopup('Oficina del puerto');
-      L.marker(entryCoords).addTo(map)
-        .bindPopup('Entrada del puerto');
-      L.marker(amarreCoords).addTo(map)
-        .bindPopup(`Amarre ${amarreId}`);
+      // Dibujar ruta completa al principio
+      let routeLine = L.polyline(ruta, { color: 'blue', weight: 4, opacity: 0.8 }).addTo(map);
 
-      // Dibujar ruta marítima
-      L.polyline(ruta, { color: 'blue', weight: 4, opacity: 0.8 }).addTo(map);
+      // Marcador del usuario con icono de barco
+      const userMarker = L.marker(oficinaCoords, { icon: boatIcon }).addTo(map);
 
-      // Marcador de usuario
-      const userMarker = L.marker(oficinaCoords).addTo(map);
-
-      // Función para paso más cercano
-      function nearestStepIndex(pos) {
+      // Función para encontrar índice más cercano en array de coordenadas
+      function nearestIndex(pos, coordsArray) {
         let best = 0, minD = Infinity;
-        steps.forEach((s,i) => {
-          const d = map.distance(pos, [s.lat, s.lng]);
+        coordsArray.forEach((c,i) => {
+          const d = map.distance(pos, c);
           if (d < minD) { minD = d; best = i; }
         });
         return best;
       }
 
-      // Usar watch para ubicar en tiempo real
+      // Vigilancia de geolocalización en tiempo real
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(pos => {
           const userPos = [pos.coords.latitude, pos.coords.longitude];
 
-          // Mover y mostrar marcador usuario
+          // Mover marcador del usuario
           userMarker.setLatLng(userPos).bindPopup('Estás aquí').openPopup();
 
-          // Dibujar conexión al punto de entrada
+          // Actualizar ruta restante: recortar ruta completa
+          const idxRoute = nearestIndex(userPos, ruta);
+          const remaining = ruta.slice(idxRoute);
+          routeLine.setLatLngs(remaining);
+
+          // Dibujar línea punteada al punto de entrada
           L.polyline([userPos, entryCoords], {
             color: 'gray', weight: 2, dashArray: '4,6', opacity: 0.6
           }).addTo(map);
 
-          // Actualizar panel superior con paso actual
-          const idx = nearestStepIndex(userPos);
-          const step = steps[idx];
+          // Actualizar panel de indicaciones
+          const idxStep = nearestIndex(userPos, steps.map(s => [s.lat, s.lng]));
+          const step    = steps[idxStep];
           showPanel('nav-panel', `
             <div class="distance">${step.distance}</div>
             <div class="instruction">${step.instruction}</div>
@@ -98,8 +103,8 @@
             <div class="footer-text">Marina Benicarló</div>
           `);
 
-          // Ajustar vista para incluir usuario y amarre
-          const bounds = L.latLngBounds([userPos, entryCoords]);
+          // Ajustar vista para incluir usuario y ruta
+          const bounds = L.latLngBounds([userPos, amarreCoords]);
           map.fitBounds(bounds, { padding: [50,50] });
         }, err => console.warn(err), {
           enableHighAccuracy: true,
