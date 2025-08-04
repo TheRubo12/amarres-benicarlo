@@ -1,4 +1,3 @@
-```javascript
 (function() {
   // Función para obtener parámetro de URL
   function getParam(name) {
@@ -70,4 +69,3 @@
       }
     });
 })();
-```
