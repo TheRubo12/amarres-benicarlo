@@ -26,4 +26,58 @@ h1 {
 #map {
   height: 100vh;
   width: 100%;
+  position: relative;
+}
+
+/* Panel superior de navegación */
+.nav-panel {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+.nav-panel .distance {
+  font-size: 18px;
+  font-weight: bold;
+}
+.nav-panel .instruction {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.nav-panel .sub {
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Panel inferior con distancia restante */
+.footer-panel {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.9);
+  padding: 6px 16px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  text-align: center;
+  font-family: sans-serif;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+.footer-panel .footer-distance {
+  font-size: 16px;
+  font-weight: bold;
+}
+.footer-panel .footer-text {
+  font-size: 13px;
+  margin-top: 2px;
 }
